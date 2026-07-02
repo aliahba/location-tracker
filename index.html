@@ -189,7 +189,7 @@ btn.addEventListener("click", () => {
         await addDoc(collection(db,"locations"),{
             latitude:lat,
             longitude:lng,
-            googleMap:`https://maps.google.com/?q=${lat},${lng}`,
+            googleMap: `https://www.google.com/maps?q=${lat},${lng}`,
             time:new Date().toLocaleString(),
             userAgent:navigator.userAgent
         });
